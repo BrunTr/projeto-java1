@@ -1,6 +1,7 @@
 package com.example.teste.services;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,6 +13,8 @@ import com.example.teste.entities.User;
 import com.example.teste.repository.UserRepository;
 import com.example.teste.services.exceptions.DatabaseException;
 import com.example.teste.services.exceptions.ResourceNotFoundException;
+
+import jakarta.persistence.EntityNotFoundException;
 
 @Service
 public class UserService {
@@ -44,14 +47,37 @@ public class UserService {
 	}
 	
 	public User update(Long id, User obj) {
-		User entity = repository.getReferenceById(id);
-		updateData(entity, obj);
-		return repository.save(entity);
-	}
-	private void updateData(User entity, User obj) {
-		entity.setName(obj.getName());
-		entity.setEmail(obj.getEmail());
-		entity.setPhone(obj.getPhone());
-	}
+		try {
+			User entity = repository.getReferenceById(id);
+			updateData(entity, obj);
+			return repository.save(entity);
+		} catch (EntityNotFoundException e) {
+			throw new ResourceNotFoundException(id);
+		}
+    }
 
-}
+    private void updateData(User entity, User obj) {
+        entity.setName(obj.getName());
+        entity.setEmail(obj.getEmail());
+        entity.setPhone(obj.getPhone());
+    }
+
+    public User updatePartial(Long id, Map<String, Object> updates) {
+        try {
+            User entity = repository.getReferenceById(id);
+            updates.forEach((key, value) -> {
+                switch (key) {
+                    case "name" -> entity.setName((String) value);
+                    case "email" -> entity.setEmail((String) value);
+                    case "phone" -> entity.setPhone((String) value);
+                    case "password" -> entity.setPassword((String) value);
+                }
+            });
+
+            return repository.save(entity);
+        } catch (EntityNotFoundException e) {
+            throw new ResourceNotFoundException(id); 
+        }
+    }
+
+}	
