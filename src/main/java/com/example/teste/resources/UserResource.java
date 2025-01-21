@@ -17,8 +17,11 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
+import com.example.teste.dto.UserDTO;
 import com.example.teste.entities.User;
 import com.example.teste.services.UserService;
+
+import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping(value = "/users")
@@ -40,17 +43,19 @@ public class UserResource {
 	}
 	
 	@PostMapping
-	public ResponseEntity<User> insert(@RequestBody User obj){
+	public ResponseEntity<User> insert(@RequestBody @Valid User obj){
 		obj = service.insert(obj);
 		URI uri = ServletUriComponentsBuilder.fromCurrentRequest().path("/{id}")
 				.buildAndExpand(obj.getId()).toUri();
 		return ResponseEntity.created(uri).body(obj);
+	
 	}
 	
 	
 	@PutMapping(value = "/{id}")
-	public ResponseEntity<User> update(@PathVariable Long id, @RequestBody User obj) {
-        obj = service.update(id, obj);
+	public ResponseEntity<User> update(@PathVariable Long id, @RequestBody @Valid UserDTO dto) {
+		System.out.println("🔍 Recebendo dados:" + dto);
+		User obj = service.update(id, dto);
         return ResponseEntity.ok().body(obj);
 	}
 	

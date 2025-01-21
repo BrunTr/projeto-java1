@@ -9,12 +9,14 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.stereotype.Service;
 
+import com.example.teste.dto.UserDTO;
 import com.example.teste.entities.User;
 import com.example.teste.repository.UserRepository;
 import com.example.teste.services.exceptions.DatabaseException;
 import com.example.teste.services.exceptions.ResourceNotFoundException;
 
 import jakarta.persistence.EntityNotFoundException;
+import jakarta.validation.Valid;
 
 @Service
 public class UserService {
@@ -26,16 +28,24 @@ public class UserService {
 		return repository.findAll();
 	}
 	
-	public User findById(Long id ) {
+	public User findById(Long id) {
 		Optional<User> obj = repository.findById(id);
 		return obj.orElseThrow(() -> new ResourceNotFoundException(id));
 	}
 	
-	public User insert(User obj) {
-		return repository.save(obj);
+	public void isEmailValid(String email) {
+		Optional<User> isValid = repository.findByEmail(email);
+		  if (isValid.isPresent()) {
+		        throw new IllegalArgumentException("O email inserido já existe, tente outro.");
+		    }
 	}
 
-
+	public User insert(@Valid User obj) {
+		isEmailValid(obj.email);
+		return repository.save(obj);
+	}
+	
+	
 	public void delete(Long id) {
 		try {
 			repository.deleteById(id);
@@ -46,20 +56,21 @@ public class UserService {
 		}
 	}
 	
-	public User update(Long id, User obj) {
+	public User update(Long id, @Valid UserDTO dto) {
 		try {
 			User entity = repository.getReferenceById(id);
-			updateData(entity, obj);
+			updateData(entity, dto);
 			return repository.save(entity);
 		} catch (EntityNotFoundException e) {
 			throw new ResourceNotFoundException(id);
 		}
     }
 
-    private void updateData(User entity, User obj) {
-        entity.setName(obj.getName());
-        entity.setEmail(obj.getEmail());
-        entity.setPhone(obj.getPhone());
+    private void updateData(User entity, @Valid UserDTO dto) {
+        entity.setName(dto.getName());
+        entity.setEmail(dto.getEmail());
+        entity.setPhone(dto.getPhone());
+        entity.setPassword(dto.getPassword());
     }
 
     public User updatePartial(Long id, Map<String, Object> updates) {
