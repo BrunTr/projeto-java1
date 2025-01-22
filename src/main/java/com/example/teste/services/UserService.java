@@ -93,6 +93,7 @@ public class UserService {
     public User updatePartial(Long id, Map<String, Object> updates) {
         try {
             User entity = repository.getReferenceById(id);
+            
             updates.forEach((key, value) -> {
                 switch (key) {
                     case "name" -> entity.setName((String) value);
