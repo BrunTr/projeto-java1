@@ -8,7 +8,6 @@ import jakarta.validation.constraints.NotBlank;
 
 public class UserDTO {
 	
-	
 		private String name;
 	    @Email(message = "O e-mail deve ser válido")
 	    @NotBlank(message = "O campo do e-mail não pode estar vazio")
@@ -19,8 +18,7 @@ public class UserDTO {
 	   
 	    @NotBlank(message = "O campo da senha não pode estar vazio")
 	    private String password;
-
-		
+	    
 		public String getName() {
 			return name;
 		}

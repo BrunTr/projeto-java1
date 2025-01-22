@@ -36,16 +36,24 @@ public class UserService {
 	public void isEmailValid(String email) {
 		Optional<User> isValid = repository.findByEmail(email);
 		  if (isValid.isPresent()) {
-		        throw new IllegalArgumentException("O email inserido já existe, tente outro.");
+		        throw new IllegalArgumentException("O email inserido já está cadastrado, tente outro.");
 		    }
 	}
 
 	public User insert(@Valid User obj) {
 		isEmailValid(obj.email);
+		validatePassword(obj.getPassword());
 		return repository.save(obj);
 	}
 	
 	
+	private void validatePassword(String password) {
+		Optional<User> validatePassword = repository.findByPassword(password);
+		  if (validatePassword == null || password.length()!= 8) {
+		        throw new IllegalArgumentException("A senha deve ter exatamente 8 caracteres.");
+		  }
+	}
+
 	public void delete(Long id) {
 		try {
 			repository.deleteById(id);
@@ -59,11 +67,20 @@ public class UserService {
 	public User update(Long id, @Valid UserDTO dto) {
 		try {
 			User entity = repository.getReferenceById(id);
+			
+			Optional<User> existingUser = repository.findByEmail(dto.getEmail());
+	        if (existingUser.isPresent() && !existingUser.get().getId().equals(id)) {
+	            throw new IllegalArgumentException("O email inserido já está cadastrado, tente outro.");
+	        }
+	        
+	        validatePassword(dto.getPassword());
 			updateData(entity, dto);
 			return repository.save(entity);
+			
 		} catch (EntityNotFoundException e) {
 			throw new ResourceNotFoundException(id);
 		}
+		
     }
 
     private void updateData(User entity, @Valid UserDTO dto) {

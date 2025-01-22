@@ -24,12 +24,14 @@ public class User implements Serializable {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
+	@NotBlank
 	private String name;
 	@NotBlank
 	@Email
 	public String email;
 	@NotBlank
 	private String phone;
+	@NotBlank
 	private String password;
 	
 	@JsonIgnore
