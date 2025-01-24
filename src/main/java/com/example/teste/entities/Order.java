@@ -109,11 +109,11 @@ public class Order implements Serializable {
 	
 	
 	public Double getTotal() {
-		double sum = 0.0;
+		double total = 0.0;
 		for (OrderItem x :items) {
-			sum = sum + x.getSubTotal();
+			total = total + x.getSubTotal();
 		}
-		return sum;
+		return total;
 	}
 	
 	
