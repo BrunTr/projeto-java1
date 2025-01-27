@@ -14,6 +14,7 @@ import com.example.teste.entities.User;
 import com.example.teste.repository.UserRepository;
 import com.example.teste.services.exceptions.DatabaseException;
 import com.example.teste.services.exceptions.ResourceNotFoundException;
+import com.example.teste.utils.MD5Util;
 
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.validation.Valid;
@@ -43,6 +44,7 @@ public class UserService {
 	public User insert(@Valid User obj) {
 		isEmailValid(obj.email);
 		validatePassword(obj.getPassword());
+		obj.setPassword(MD5Util.encrypt(obj.getPassword()));
 		return repository.save(obj);
 	}
 	
@@ -54,6 +56,22 @@ public class UserService {
 		  }
 	}
 
+	public User login(@Valid String email, String password) {
+		Optional<User> emailLogin = repository.findByEmail(email);
+		
+		if (emailLogin.isEmpty()) {
+            throw new IllegalArgumentException("E-mail não encontrado.");
+        }
+		
+		User user = emailLogin.get(); 
+		String hashedPassword = MD5Util.encrypt(password);
+		
+		if (!hashedPassword.equals(user.getPassword())) {
+            throw new IllegalArgumentException("Senha incorreta.");
+		}
+		return user;
+	}
+	
 	public void delete(Long id) {
 		try {
 			repository.deleteById(id);
@@ -75,6 +93,10 @@ public class UserService {
 	        
 	        validatePassword(dto.getPassword());
 			updateData(entity, dto);
+			isEmailValid(entity.email);
+			validatePassword(entity.getPassword());
+			entity.setPassword(MD5Util.encrypt(entity.getPassword()));
+			
 			return repository.save(entity);
 			
 		} catch (EntityNotFoundException e) {
@@ -109,4 +131,6 @@ public class UserService {
         }
     }
 
-}	
+
+
+}

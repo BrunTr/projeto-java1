@@ -24,12 +24,11 @@ public class User implements Serializable {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
-	@NotBlank(message = "Este campo não pode estar vazio.")
+	
 	private String name;
 	@NotBlank(message = "Este campo não pode estar vazio.")
 	@Email
 	public String email;
-	@NotBlank(message = "Este campo não pode estar vazio.")
 	private String phone;
 	@NotBlank(message = "Este campo não pode estar vazio.")
 	private String password;

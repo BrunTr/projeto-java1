@@ -30,6 +30,13 @@ public class UserResource {
 	@Autowired
 	private UserService service;
 	
+	@PostMapping(value = "/login")
+	public ResponseEntity<User> login(@RequestBody @Valid User login, @Valid String email, String password){
+		User loginResponse = service.login(email, password);
+		
+		return ResponseEntity.ok().body(loginResponse);
+	}
+	
 	@GetMapping
 	public ResponseEntity<List<User>> findAll() {
 		List<User> list = service.findAll();

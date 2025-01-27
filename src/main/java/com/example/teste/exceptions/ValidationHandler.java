@@ -16,7 +16,7 @@ public class ValidationHandler {
     
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<Map<String, String>> handleValidationExceptions(MethodArgumentNotValidException ex) {
-        System.out.println("⚠️ ValidacaoHandler foi chamado! ⚠️");
+        System.out.println("⚠️ ValidationHandler foi chamado! ⚠️");
 
         Map<String, String> errors = new HashMap<>();
 

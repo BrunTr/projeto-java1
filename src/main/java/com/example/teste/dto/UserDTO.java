@@ -2,23 +2,38 @@ package com.example.teste.dto;
 
 import java.util.Objects;
 
+import com.example.teste.entities.User;
+
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 
 
 public class UserDTO {
 	
+		@NotBlank
 		private String name;
 	    @Email(message = "O e-mail deve ser válido")
 	    @NotBlank(message = "O campo do e-mail não pode estar vazio")
 	    private String email;
 
+	    @NotBlank
 	    @NotBlank(message = "O campo do telefone não pode estar vazio")
 	    private String phone;
 	   
 	    @NotBlank(message = "O campo da senha não pode estar vazio")
 	    private String password;
 	    
+		
+	    public UserDTO() {
+	    }
+	    
+	    public UserDTO(User user) {
+			 this.name = user.getName();   
+			 this.email = user.getEmail();
+		     this.phone = user.getPhone();
+		     this.password = user.getPassword();
+		}
+
 		public String getName() {
 			return name;
 		}
