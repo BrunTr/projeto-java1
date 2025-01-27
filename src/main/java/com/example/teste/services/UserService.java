@@ -9,6 +9,7 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.stereotype.Service;
 
+import com.example.teste.dto.LoginDTO;
 import com.example.teste.dto.UserDTO;
 import com.example.teste.entities.User;
 import com.example.teste.repository.UserRepository;
@@ -24,6 +25,7 @@ public class UserService {
 
 	@Autowired
 	private UserRepository repository; 
+	
 	
 	public List<User> findAll() {
 		return repository.findAll();
@@ -56,20 +58,21 @@ public class UserService {
 		  }
 	}
 
-	public User login(@Valid String email, String password) {
-		Optional<User> emailLogin = repository.findByEmail(email);
-		
-		if (emailLogin.isEmpty()) {
-            throw new IllegalArgumentException("E-mail não encontrado.");
-        }
-		
-		User user = emailLogin.get(); 
-		String hashedPassword = MD5Util.encrypt(password);
-		
-		if (!hashedPassword.equals(user.getPassword())) {
-            throw new IllegalArgumentException("Senha incorreta.");
-		}
-		return user;
+	public UserDTO login(@Valid LoginDTO loginDTO) {
+		Optional<User> emailLogin = repository.findByEmail(loginDTO.getEmail());
+
+	    if (emailLogin.isEmpty()) {
+	        throw new IllegalArgumentException("E-mail não encontrado.");
+	    }
+
+	    User user = emailLogin.get(); 
+	    String hashedPassword = MD5Util.encrypt(loginDTO.getPassword());
+
+	    if (!hashedPassword.equals(user.getPassword())) {
+	        throw new IllegalArgumentException("Senha incorreta.");
+	    }
+
+	    return new UserDTO(user);
 	}
 	
 	public void delete(Long id) {

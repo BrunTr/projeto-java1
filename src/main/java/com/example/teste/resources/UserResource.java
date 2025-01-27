@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
+import com.example.teste.dto.LoginDTO;
 import com.example.teste.dto.UserDTO;
 import com.example.teste.entities.User;
 import com.example.teste.services.UserService;
@@ -31,10 +32,10 @@ public class UserResource {
 	private UserService service;
 	
 	@PostMapping(value = "/login")
-	public ResponseEntity<User> login(@RequestBody @Valid User login, @Valid String email, String password){
-		User loginResponse = service.login(email, password);
+	public ResponseEntity<?> login(@RequestBody LoginDTO loginDTO){
+		UserDTO userDTO = service.login(loginDTO);
 		
-		return ResponseEntity.ok().body(loginResponse);
+		return ResponseEntity.ok(userDTO);
 	}
 	
 	@GetMapping
