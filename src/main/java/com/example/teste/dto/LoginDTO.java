@@ -1,8 +1,15 @@
 package com.example.teste.dto;
 
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+
 public class LoginDTO {
-    private String email;
-    private String password;
+	
+	@Email(message = "O e-mail deve ser válido")
+    @NotBlank(message = "O campo do e-mail não pode estar vazio")
+	private String email;
+	@NotBlank(message = "O campo da senha não pode estar vazio")
+	private String password;
 
     public LoginDTO() {
     }

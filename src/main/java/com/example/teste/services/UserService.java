@@ -7,6 +7,7 @@ import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.dao.EmptyResultDataAccessException;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import com.example.teste.dto.LoginDTO;
@@ -43,6 +44,13 @@ public class UserService {
 		    }
 	}
 
+	private void validatePassword(String password) {
+		Optional<User> validatePassword = repository.findByPassword(password);
+		  if (validatePassword == null || password.length()!= 8) {
+		        throw new IllegalArgumentException("A senha deve ter exatamente 8 caracteres.");
+		  }
+	}
+	
 	public User insert(@Valid User obj) {
 		isEmailValid(obj.email);
 		validatePassword(obj.getPassword());
@@ -50,14 +58,6 @@ public class UserService {
 		return repository.save(obj);
 	}
 	
-	
-	private void validatePassword(String password) {
-		Optional<User> validatePassword = repository.findByPassword(password);
-		  if (validatePassword == null || password.length()!= 8) {
-		        throw new IllegalArgumentException("A senha deve ter exatamente 8 caracteres.");
-		  }
-	}
-
 	public UserDTO login(@Valid LoginDTO loginDTO) {
 		Optional<User> emailLogin = repository.findByEmail(loginDTO.getEmail());
 
@@ -78,8 +78,9 @@ public class UserService {
 	public void delete(Long id) {
 		try {
 			repository.deleteById(id);
+			 return;
 		} catch (EmptyResultDataAccessException e) {
-			throw new ResourceNotFoundException(id);
+			throw new ResourceNotFoundException("Usuário com ID " + id + " não encontrado.");
 		} catch (DataIntegrityViolationException e) {
 			throw new DatabaseException(e.getMessage());
 		}

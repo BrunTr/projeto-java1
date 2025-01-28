@@ -12,10 +12,11 @@ public class UserDTO {
 	
 		@NotBlank
 		private String name;
-	    @Email(message = "O e-mail deve ser válido")
+	  
+		@Email(message = "O e-mail deve ser válido")
 	    @NotBlank(message = "O campo do e-mail não pode estar vazio")
 	    private String email;
-
+		
 	    @NotBlank
 	    @NotBlank(message = "O campo do telefone não pode estar vazio")
 	    private String phone;
@@ -84,9 +85,5 @@ public class UserDTO {
 			return Objects.equals(email, other.email);
 		}
 
-		
-
-	
-
-	   
+   
 }

@@ -18,8 +18,16 @@ public class OrderDTO {
         this.clientName = order.getClient().getName(); 
 	}
 	
-	public Long getId() { return id; }
-    public Instant getMoment() { return moment; }
-    public Double getTotalPrice() { return totalPrice; }
-    public String getClientName() { return clientName; }
+	public Long getId() { 
+		return id; 
+	}
+    public Instant getMoment() {
+    	return moment; 
+    }
+    public Double getTotalPrice() { 
+    	return totalPrice; 
+    }
+    public String getClientName() { 
+    	return clientName; 
+    }
 }

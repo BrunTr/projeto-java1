@@ -67,6 +67,7 @@ public class UserResource {
         return ResponseEntity.ok().body(obj);
 	}
 	
+	
 	@PatchMapping("/{id}")
 	public ResponseEntity<User> updatePartial(
 	        @PathVariable Long id,
@@ -77,8 +78,8 @@ public class UserResource {
 	}
 	
 	@DeleteMapping(value = "/{id}")
-	public ResponseEntity<Void> delete(@PathVariable Long id) {
+	public ResponseEntity<String> delete(@PathVariable Long id) {
 		service.delete(id);
-		return ResponseEntity.noContent().build();
+		return ResponseEntity.ok("Usuário com ID " + id + " deletado com sucesso.");
 	}
 }
