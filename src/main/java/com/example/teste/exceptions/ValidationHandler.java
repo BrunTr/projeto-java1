@@ -16,8 +16,7 @@ public class ValidationHandler {
     
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<Map<String, String>> handleValidationExceptions(MethodArgumentNotValidException ex) {
-        System.out.println("⚠️ ValidationHandler foi chamado! ⚠️");
-
+        
         Map<String, String> errors = new HashMap<>();
 
         for (FieldError error : ex.getBindingResult().getFieldErrors()) {
@@ -29,8 +28,7 @@ public class ValidationHandler {
 
         @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<Map<String, String>> handleIllegalArgumentException(IllegalArgumentException ex) {
-        System.out.println("⚠️ IllegalArgumentException foi chamado! ⚠️");
-
+       
         Map<String, String> errorResponse = new HashMap<>();
         errorResponse.put("message", ex.getMessage());
 

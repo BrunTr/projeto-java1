@@ -102,6 +102,7 @@ public class Product implements Serializable{
 		}
 		return set;
 	}
+	
 	@Override
 	public int hashCode() {
 		return Objects.hash(product_id);

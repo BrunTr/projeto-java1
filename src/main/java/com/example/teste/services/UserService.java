@@ -7,7 +7,6 @@ import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.dao.EmptyResultDataAccessException;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import com.example.teste.dto.LoginDTO;
@@ -47,7 +46,7 @@ public class UserService {
 	private void validatePassword(String password) {
 		Optional<User> validatePassword = repository.findByPassword(password);
 		  if (validatePassword == null || password.length()!= 8) {
-		        throw new IllegalArgumentException("A senha deve ter exatamente 8 caracteres.");
+		        throw new IllegalArgumentException("A senha deve ter mais de 8 caracteres.");
 		  }
 	}
 	
@@ -78,7 +77,7 @@ public class UserService {
 	public void delete(Long id) {
 		try {
 			repository.deleteById(id);
-			 return;
+			 
 		} catch (EmptyResultDataAccessException e) {
 			throw new ResourceNotFoundException("Usuário com ID " + id + " não encontrado.");
 		} catch (DataIntegrityViolationException e) {
@@ -90,13 +89,8 @@ public class UserService {
 		try {
 			User entity = repository.getReferenceById(id);
 			
-			Optional<User> existingUser = repository.findByEmail(dto.getEmail());
-	        if (existingUser.isPresent() && !existingUser.get().getId().equals(id)) {
-	            throw new IllegalArgumentException("O email inserido já está cadastrado, tente outro.");
-	        }
-	        
-	        validatePassword(dto.getPassword());
-			updateData(entity, dto);
+	    	updateData(entity, dto);
+			
 			isEmailValid(entity.email);
 			validatePassword(entity.getPassword());
 			entity.setPassword(MD5Util.encrypt(entity.getPassword()));
@@ -119,7 +113,7 @@ public class UserService {
     public User updatePartial(Long id, Map<String, Object> updates) {
         try {
             User entity = repository.getReferenceById(id);
-            
+           			
             updates.forEach((key, value) -> {
                 switch (key) {
                     case "name" -> entity.setName((String) value);

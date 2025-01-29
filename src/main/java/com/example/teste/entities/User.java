@@ -28,7 +28,7 @@ public class User implements Serializable {
 	@NotBlank(message = "Este campo não pode estar vazio.")
 	private String name;
 	@NotBlank(message = "Este campo não pode estar vazio.")
-	@Email
+	@Email(message = "O e-mail deve ser válido")
 	public String email;
 	@NotBlank(message = "Este campo não pode estar vazio.")
 	private String phone;

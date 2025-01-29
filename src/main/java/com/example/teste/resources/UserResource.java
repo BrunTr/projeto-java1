@@ -31,13 +31,7 @@ public class UserResource {
 	@Autowired
 	private UserService service;
 	
-	@PostMapping(value = "/login")
-	public ResponseEntity<?> login(@RequestBody LoginDTO loginDTO){
-		UserDTO userDTO = service.login(loginDTO);
 		
-		return ResponseEntity.ok(userDTO);
-	}
-	
 	@GetMapping
 	public ResponseEntity<List<User>> findAll() {
 		List<User> list = service.findAll();
@@ -59,19 +53,22 @@ public class UserResource {
 	
 	}
 	
+	@PostMapping(value = "/login")
+	public ResponseEntity<?> login(@RequestBody LoginDTO loginDTO){
+		UserDTO userDTO = service.login(loginDTO);
+		
+		return ResponseEntity.ok(userDTO);
+	}
 	
 	@PutMapping(value = "/{id}")
 	public ResponseEntity<User> update(@PathVariable Long id, @RequestBody @Valid UserDTO dto) {
-		System.out.println("🔍 Recebendo dados:" + dto);
 		User obj = service.update(id, dto);
         return ResponseEntity.ok().body(obj);
 	}
 	
 	
 	@PatchMapping("/{id}")
-	public ResponseEntity<User> updatePartial(
-	        @PathVariable Long id,
-	        @RequestBody Map<String, Object> updates) {
+	public ResponseEntity<User> updatePartial(@PathVariable Long id, @RequestBody Map<String, Object> updates) {
 
 	    User updatedUser = service.updatePartial(id, updates);
 	    return ResponseEntity.ok().body(updatedUser);

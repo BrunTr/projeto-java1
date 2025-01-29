@@ -1,7 +1,5 @@
 package com.example.teste.dto;
 
-import java.util.Objects;
-
 import com.example.teste.entities.User;
 
 import jakarta.validation.constraints.Email;
@@ -13,7 +11,7 @@ public class UserDTO {
 		@NotBlank
 		private String name;
 	  
-		@Email(message = "O e-mail deve ser válido")
+		@Email
 	    @NotBlank(message = "O campo do e-mail não pode estar vazio")
 	    private String email;
 		
@@ -68,22 +66,5 @@ public class UserDTO {
 			this.password = password;
 		}
 		
-		@Override
-		public int hashCode() {
-			return Objects.hash(email);
-		}
-
-		@Override
-		public boolean equals(Object obj) {
-			if (this == obj)
-				return true;
-			if (obj == null)
-				return false;
-			if (getClass() != obj.getClass())
-				return false;
-			UserDTO other = (UserDTO) obj;
-			return Objects.equals(email, other.email);
-		}
-
-   
+	   
 }
