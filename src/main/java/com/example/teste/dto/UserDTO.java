@@ -8,27 +8,27 @@ import jakarta.validation.constraints.NotBlank;
 
 public class UserDTO {
 	
-		private Long id; 
+		private Long id;
 		@NotBlank
 		private String name;
-		@Email
+	  	@Email
 	    @NotBlank(message = "O campo do e-mail não pode estar vazio")
 	    private String email;
-		
-	    @NotBlank
+		@NotBlank
 	    @NotBlank(message = "O campo do telefone não pode estar vazio")
 	    private String phone;
 	   
-	        
+	    
 		
 	    public UserDTO() {
 	    }
 	    
 	    public UserDTO(User user) {
-	    	 this.id = user.getId();;
+	    	 this.id = user.getId();
 			 this.name = user.getName();   
 			 this.email = user.getEmail();
 		     this.phone = user.getPhone();
+		     
 		}
 
 	    public Long getId() {
@@ -38,7 +38,7 @@ public class UserDTO {
 		public void setId(Long id) {
 			this.id = id;
 		}
-		
+	    
 		public String getName() {
 			return name;
 		}
@@ -64,4 +64,7 @@ public class UserDTO {
 			this.phone = phone;
 		}
 
+		
+		
+	   
 }

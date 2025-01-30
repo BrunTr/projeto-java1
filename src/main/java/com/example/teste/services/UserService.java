@@ -60,9 +60,6 @@ public class UserService {
 	public UserDTO login(@Valid LoginDTO loginDTO) {
 		Optional<User> emailLogin = repository.findByEmail(loginDTO.getEmail());
 		
-		validatePassword(loginDTO.getPassword());
-		
-		
 	    if (emailLogin.isEmpty()) {
 	        throw new IllegalArgumentException("E-mail não cadastrado.");
 	    }
@@ -74,7 +71,13 @@ public class UserService {
 	        throw new IllegalArgumentException("Senha incorreta.");
 	    }
 
-	    return new UserDTO(user);
+	    UserDTO responseDTO = new UserDTO();
+	    responseDTO.setId(user.getId());
+	    responseDTO.setName(user.getName());
+	    responseDTO.setEmail(user.getEmail());
+	    responseDTO.setPhone(user.getPhone());
+	    
+	    return responseDTO;
 	}
 	
 	public void delete(Long id) {
@@ -88,11 +91,11 @@ public class UserService {
 		}
 	}
 	
-	public User update(Long id, @Valid UserDTO dto) {
+	public User update(Long id, @Valid User user) {
 		try {
 			User entity = repository.getReferenceById(id);
 			
-	    	updateData(entity, dto);
+	    	updateData(entity, user);
 			
 			isEmailValid(entity.email);
 			validatePassword(entity.getPassword());
@@ -106,11 +109,11 @@ public class UserService {
 		
     }
 
-    private void updateData(User entity, @Valid UserDTO dto) {
-    	entity.setId(dto.getId());
-    	entity.setName(dto.getName());
-        entity.setEmail(dto.getEmail());
-        entity.setPhone(dto.getPhone());
+    private void updateData(User entity, User user) {
+    	entity.setName(user.getName());
+        entity.setEmail(user.getEmail());
+        entity.setPhone(user.getPhone());
+        entity.setPassword(user.getPassword());
         }
 
     public User updatePartial(Long id, Map<String, Object> updates) {
