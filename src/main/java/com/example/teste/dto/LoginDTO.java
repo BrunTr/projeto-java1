@@ -7,7 +7,7 @@ public class LoginDTO {
 	
 	@Email(message = "O e-mail deve ser válido")
     @NotBlank(message = "O campo do e-mail não pode estar vazio")
-	private String email;
+	public String email;
 	@NotBlank(message = "O campo da senha não pode estar vazio")
 	private String password;
 

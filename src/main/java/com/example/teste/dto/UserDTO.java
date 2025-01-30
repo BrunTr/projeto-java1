@@ -8,9 +8,9 @@ import jakarta.validation.constraints.NotBlank;
 
 public class UserDTO {
 	
+		private Long id; 
 		@NotBlank
 		private String name;
-	  
 		@Email
 	    @NotBlank(message = "O campo do e-mail não pode estar vazio")
 	    private String email;
@@ -19,20 +19,26 @@ public class UserDTO {
 	    @NotBlank(message = "O campo do telefone não pode estar vazio")
 	    private String phone;
 	   
-	    @NotBlank(message = "O campo da senha não pode estar vazio")
-	    private String password;
-	    
+	        
 		
 	    public UserDTO() {
 	    }
 	    
 	    public UserDTO(User user) {
+	    	 this.id = user.getId();;
 			 this.name = user.getName();   
 			 this.email = user.getEmail();
 		     this.phone = user.getPhone();
-		     this.password = user.getPassword();
 		}
 
+	    public Long getId() {
+			return id;
+		}
+
+		public void setId(Long id) {
+			this.id = id;
+		}
+		
 		public String getName() {
 			return name;
 		}
@@ -58,13 +64,4 @@ public class UserDTO {
 			this.phone = phone;
 		}
 
-		public String getPassword() {
-			return password;
-		}
-
-		public void setPassword(String password) {
-			this.password = password;
-		}
-		
-	   
 }

@@ -36,7 +36,7 @@ public class UserService {
 		return obj.orElseThrow(() -> new ResourceNotFoundException(id));
 	}
 	
-	public void isEmailValid(String email) {
+	private void isEmailValid(String email) {
 		Optional<User> isValid = repository.findByEmail(email);
 		  if (isValid.isPresent()) {
 		        throw new IllegalArgumentException("O email inserido já está cadastrado, tente outro.");
@@ -45,8 +45,8 @@ public class UserService {
 
 	private void validatePassword(String password) {
 		Optional<User> validatePassword = repository.findByPassword(password);
-		  if (validatePassword == null || password.length()!= 8) {
-		        throw new IllegalArgumentException("A senha deve ter mais de 8 caracteres.");
+		  if (validatePassword == null || password.length()< 8) {
+		        throw new IllegalArgumentException("A senha deve ter 8 ou mais caracteres.");
 		  }
 	}
 	
@@ -59,9 +59,12 @@ public class UserService {
 	
 	public UserDTO login(@Valid LoginDTO loginDTO) {
 		Optional<User> emailLogin = repository.findByEmail(loginDTO.getEmail());
-
+		
+		validatePassword(loginDTO.getPassword());
+		
+		
 	    if (emailLogin.isEmpty()) {
-	        throw new IllegalArgumentException("E-mail não encontrado.");
+	        throw new IllegalArgumentException("E-mail não cadastrado.");
 	    }
 
 	    User user = emailLogin.get(); 
@@ -79,7 +82,7 @@ public class UserService {
 			repository.deleteById(id);
 			 
 		} catch (EmptyResultDataAccessException e) {
-			throw new ResourceNotFoundException("Usuário com ID " + id + " não encontrado.");
+			throw new ResourceNotFoundException(id);
 		} catch (DataIntegrityViolationException e) {
 			throw new DatabaseException(e.getMessage());
 		}
@@ -104,11 +107,11 @@ public class UserService {
     }
 
     private void updateData(User entity, @Valid UserDTO dto) {
-        entity.setName(dto.getName());
+    	entity.setId(dto.getId());
+    	entity.setName(dto.getName());
         entity.setEmail(dto.getEmail());
         entity.setPhone(dto.getPhone());
-        entity.setPassword(dto.getPassword());
-    }
+        }
 
     public User updatePartial(Long id, Map<String, Object> updates) {
         try {
