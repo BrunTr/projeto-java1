@@ -9,14 +9,10 @@ import jakarta.validation.constraints.NotBlank;
 public class UserDTO {
 	
 		private Long id;
-		@NotBlank
 		private String name;
 	  	@Email
-	    @NotBlank(message = "O campo do e-mail não pode estar vazio")
 	    private String email;
-		@NotBlank
-	    @NotBlank(message = "O campo do telefone não pode estar vazio")
-	    private String phone;
+		private String phone;
 	   
 	    
 		

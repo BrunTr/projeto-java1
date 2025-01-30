@@ -19,6 +19,7 @@ import com.example.teste.utils.MD5Util;
 
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Email;
 
 @Service
 public class UserService {
@@ -36,7 +37,7 @@ public class UserService {
 		return obj.orElseThrow(() -> new ResourceNotFoundException(id));
 	}
 	
-	private void isEmailValid(String email) {
+	private void isEmailValid(@Email String email) {
 		Optional<User> isValid = repository.findByEmail(email);
 		  if (isValid.isPresent()) {
 		        throw new IllegalArgumentException("O email inserido já está cadastrado, tente outro.");
@@ -50,7 +51,41 @@ public class UserService {
 		  }
 	}
 	
-	public User insert(@Valid User obj) {
+	private void validateUser(User user) {
+		if (user.getName() == null || user.getName().trim().isEmpty()) {
+	        throw new IllegalArgumentException("O nome não pode estar em branco.");
+	    }
+	    if (user.getEmail() == null || user.getEmail().trim().isEmpty()) {
+	        throw new IllegalArgumentException("O e-mail não pode estar em branco.");
+	    }
+	    if (user.getPhone() == null || user.getPhone().trim().isEmpty()) {
+	        throw new IllegalArgumentException("O telefone não pode estar em branco.");
+	    }
+	    if (user.getPassword() == null || user.getPassword().length() < 8) {
+	        throw new IllegalArgumentException("A senha deve ter 8 ou mais caracteres.");
+	    }
+	}
+	
+	private void checkAndUpdateData(User entity, User user) {
+	    if (user.getName() != null) {
+	        entity.setName(user.getName());
+	    }
+	    if (user.getEmail() != null && !user.getEmail().isBlank()) {
+	        entity.setEmail(user.getEmail());
+	    }
+	    if (user.getPhone() != null && !user.getPhone().isBlank()) {
+	        entity.setPhone(user.getPhone());
+	    }
+	    if (user.getPassword() != null && !user.getPassword().isBlank()) {
+	        entity.setPassword(user.getPassword());
+	    }
+	    
+	    entity.setPassword(user.getPassword());
+	}
+
+	
+	public User insert(@Email @Valid User obj) {
+		validateUser(obj);
 		isEmailValid(obj.email);
 		validatePassword(obj.getPassword());
 		obj.setPassword(MD5Util.encrypt(obj.getPassword()));
@@ -95,7 +130,7 @@ public class UserService {
 		try {
 			User entity = repository.getReferenceById(id);
 			
-	    	updateData(entity, user);
+			checkAndUpdateData(entity, user);
 			
 			isEmailValid(entity.email);
 			validatePassword(entity.getPassword());
@@ -109,13 +144,7 @@ public class UserService {
 		
     }
 
-    private void updateData(User entity, User user) {
-    	entity.setName(user.getName());
-        entity.setEmail(user.getEmail());
-        entity.setPhone(user.getPhone());
-        entity.setPassword(user.getPassword());
-        }
-
+    
     public User updatePartial(Long id, Map<String, Object> updates) {
         try {
             User entity = repository.getReferenceById(id);

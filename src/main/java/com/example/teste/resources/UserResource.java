@@ -54,7 +54,7 @@ public class UserResource {
 	}
 	
 	@PostMapping(value = "/login")
-	public ResponseEntity<?> login(@RequestBody LoginDTO loginDTO){
+	public ResponseEntity<UserDTO> login(@RequestBody LoginDTO loginDTO){
 		UserDTO userDTO = service.login(loginDTO);
 		
 		return ResponseEntity.ok(userDTO);
