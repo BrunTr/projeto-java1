@@ -13,6 +13,7 @@ import com.example.teste.dto.LoginDTO;
 import com.example.teste.dto.UserDTO;
 import com.example.teste.entities.User;
 import com.example.teste.repository.UserRepository;
+import com.example.teste.services.exceptions.IllegalArgumentException;
 import com.example.teste.services.exceptions.DatabaseException;
 import com.example.teste.services.exceptions.ResourceNotFoundException;
 import com.example.teste.utils.MD5Util;
@@ -80,7 +81,6 @@ public class UserService {
 	        entity.setPassword(user.getPassword());
 	    }
 	    
-	    entity.setPassword(user.getPassword());
 	}
 
 	
@@ -116,6 +116,8 @@ public class UserService {
 	}
 	
 	public void delete(Long id) {
+		repository.findById(id).orElseThrow(() -> new IllegalArgumentException("Usuário com ID " + id + " não encontrado."));;
+		
 		try {
 			repository.deleteById(id);
 			 
@@ -136,15 +138,17 @@ public class UserService {
 			validatePassword(entity.getPassword());
 			entity.setPassword(MD5Util.encrypt(entity.getPassword()));
 			
+			user.setPassword(user.getPassword());
+			
 			return repository.save(entity);
 			
 		} catch (EntityNotFoundException e) {
 			throw new ResourceNotFoundException(id);
 		}
-		
+		 
     }
 
-    
+	    
     public User updatePartial(Long id, Map<String, Object> updates) {
         try {
             User entity = repository.getReferenceById(id);
