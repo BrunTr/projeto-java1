@@ -12,7 +12,9 @@ import org.springframework.stereotype.Service;
 
 import com.example.teste.dto.LoginDTO;
 import com.example.teste.dto.UserDTO;
+import com.example.teste.entities.Order;
 import com.example.teste.entities.User;
+import com.example.teste.repository.OrderRepository;
 import com.example.teste.repository.UserRepository;
 import com.example.teste.services.exceptions.DatabaseException;
 import com.example.teste.services.exceptions.IllegalArgumentException;
@@ -29,6 +31,8 @@ public class UserService {
 	@Autowired
 	private UserRepository repository; 
 	
+	@Autowired
+	private OrderRepository orderRepository; 
 	
 	public List<UserDTO> findAll() {
 		List<User> user = repository.findAll();
@@ -69,6 +73,7 @@ public class UserService {
 	    }
 	}
 	
+	@Email
 	private void checkAndUpdateData(User entity, User user) {
 	    if (user.getName() != null) {
 	        entity.setName(user.getName());
@@ -86,7 +91,6 @@ public class UserService {
 	    
 	}
 
-	
 	public UserDTO insert(@Email @Valid User obj) {
 		validateUser(obj);
 		isEmailValid(obj.email);
@@ -128,17 +132,24 @@ public class UserService {
 	}
 	
 	public void delete(Long id) {
-		repository.findById(id).orElseThrow(() -> new IllegalArgumentException("Usuário com ID " + id + " não encontrado."));;
-		
-		try {
-			repository.deleteById(id);
-			 
-		} catch (EmptyResultDataAccessException e) {
-			throw new ResourceNotFoundException(id);
-		} catch (DataIntegrityViolationException e) {
-			throw new DatabaseException(e.getMessage());
-		}
+		repository.findById(id)
+        .orElseThrow(() -> new IllegalArgumentException("Usuário com ID " + id + " não encontrado."));
+
+	    try {
+	        
+	        List<Order> orders = orderRepository.findByClientId(id);
+	        if (!orders.isEmpty()) {
+	            throw new DatabaseException("Não é possível excluir um usuário com pedidos associados.");
+	        }
+	        
+	        repository.deleteById(id);
+	    } catch (EmptyResultDataAccessException e) {
+	        throw new ResourceNotFoundException(id);
+	    } catch (DataIntegrityViolationException e) {
+	        throw new DatabaseException(e.getMessage());
+	    }
 	}
+
 	
 	public UserDTO update(Long id, @Valid User obj) {
 		try {
