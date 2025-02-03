@@ -20,7 +20,6 @@ public class OrderService {
 	public List<OrderDTO> findAll() {
 		 List<Order> orders = repository.findAll();
 	        return orders.stream().map(OrderDTO::new).collect(Collectors.toList());
-		
 	}
 	
 	public OrderDTO findById(Long id ) {

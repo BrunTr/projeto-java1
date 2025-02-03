@@ -33,8 +33,8 @@ public class UserResource {
 	
 		
 	@GetMapping
-	public ResponseEntity<List<User>> findAll() {
-		List<User> list = service.findAll();
+	public ResponseEntity<List<UserDTO>> findAll() {
+		List<UserDTO> list = service.findAll();
 		return ResponseEntity.ok().body(list);
 	}
 	
@@ -45,12 +45,14 @@ public class UserResource {
 	}
 	
 	@PostMapping
-	public ResponseEntity<User> insert(@RequestBody @Valid User obj){
-		obj = service.insert(obj);
-		URI uri = ServletUriComponentsBuilder.fromCurrentRequest().path("/{id}")
-				.buildAndExpand(obj.getId()).toUri();
-		return ResponseEntity.created(uri).body(obj);
-	
+	public ResponseEntity<UserDTO> insert(@RequestBody @Valid User obj) {
+	    UserDTO userDTO = service.insert(obj); 
+	    URI uri = ServletUriComponentsBuilder.fromCurrentRequest()
+	            .path("/{id}")
+	            .buildAndExpand(userDTO.getId()) 
+	            .toUri();
+
+	    return ResponseEntity.created(uri).body(userDTO);
 	}
 	
 	@PostMapping(value = "/login")
@@ -61,9 +63,10 @@ public class UserResource {
 	}
 	
 	@PutMapping(value = "/{id}")
-	public ResponseEntity<User> update(@PathVariable Long id, @RequestBody @Valid User user) {
-		User obj = service.update(id, user);
-        return ResponseEntity.ok().body(obj);
+	public ResponseEntity<UserDTO> update(@PathVariable Long id, @RequestBody @Valid User obj) {
+		UserDTO userDTO = service.update(id, obj);
+		
+	    return ResponseEntity.ok().body(userDTO);
 	}
 	
 	
