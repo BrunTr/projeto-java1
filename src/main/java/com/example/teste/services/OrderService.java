@@ -22,8 +22,16 @@ public class OrderService {
 	        return orders.stream().map(OrderDTO::new).collect(Collectors.toList());
 	}
 	
+	public List<Order> findAll1() {
+		 return repository.findAll();
+	       
+	}
+	
 	public OrderDTO findById(Long id ) {
 		 Order order = repository.findById(id).orElseThrow(() -> new ResourceNotFoundException(id));
 	        return new OrderDTO(order);
 	}
+	
+	
+	
 }

@@ -11,9 +11,7 @@ import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.stereotype.Service;
 
 import com.example.teste.dto.LoginDTO;
-import com.example.teste.dto.OrderDTO;
 import com.example.teste.dto.UserDTO;
-import com.example.teste.entities.Order;
 import com.example.teste.entities.User;
 import com.example.teste.repository.UserRepository;
 import com.example.teste.services.exceptions.DatabaseException;
