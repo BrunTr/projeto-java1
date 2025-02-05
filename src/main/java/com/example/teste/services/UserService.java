@@ -2,6 +2,7 @@ package com.example.teste.services;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -44,11 +45,12 @@ public class UserService {
 		return obj.orElseThrow(() -> new ResourceNotFoundException(id));
 	}
 	
-	private void isEmailValid(@Email String email) {
-		Optional<User> isValid = repository.findByEmail(email);
-		  if (isValid.isPresent()) {
-		        throw new IllegalArgumentException("O email inserido já está cadastrado, tente outro.");
-		    }
+	private boolean isEmailValid(@Email String email) {
+		boolean isValid = repository.findByEmail(email).isEmpty();
+	    if (!isValid) {
+	        throw new IllegalArgumentException("O email inserido já está cadastrado, tente outro.");
+	    }
+	    return true;
 	}
 
 	private void validatePassword(String password) {
@@ -75,23 +77,15 @@ public class UserService {
 	
 	@Email
 	private void checkAndUpdateData(User entity, User user) {
-	    if (user.getName() != null) {
-	        entity.setName(user.getName());
-	    }
-	    if (user.getEmail() != null && !user.getEmail().isBlank()) {
-	    	isEmailValid(user.getEmail());
-	        entity.setEmail(user.getEmail());
-	    }
-	    if (user.getPhone() != null && !user.getPhone().isBlank()) {
-	        entity.setPhone(user.getPhone());
-	    }
-	    if (user.getPassword() != null && !user.getPassword().isBlank()) {
-	        entity.setPassword(user.getPassword());
-	    }
-	    
+		entity.setName((Objects.nonNull(user.getName()) && !user.getName().isBlank()) ? user.getName() : entity.getName());
+		entity.setEmail((Objects.nonNull(user.getEmail()) &&  isEmailValid(user.getEmail()) && !user.getEmail().isBlank())? user.getEmail() : entity.getEmail());
+	    entity.setPhone((Objects.nonNull(user.getPhone()) && !user.getPhone().isBlank()) ? user.getPhone() : entity.getPhone());
+	    entity.setPassword((Objects.nonNull(user.getPassword()) && !user.getPassword().isBlank()) ? user.getPassword() : entity.getPassword());
+
+	    	    
 	}
 
-	public UserDTO insert(@Email @Valid User obj) {
+	public UserDTO insert(@Valid User obj) {
 		validateUser(obj);
 		isEmailValid(obj.email);
 		validatePassword(obj.getPassword());
@@ -132,11 +126,9 @@ public class UserService {
 	}
 	
 	public void delete(Long id) {
-		repository.findById(id)
-        .orElseThrow(() -> new IllegalArgumentException("Usuário com ID " + id + " não encontrado."));
+		repository.findById(id).orElseThrow(() -> new IllegalArgumentException("Usuário com ID " + id + " não encontrado."));
 
 	    try {
-	        
 	        List<Order> orders = orderRepository.findByClientId(id);
 	        if (!orders.isEmpty()) {
 	            throw new DatabaseException("Não é possível excluir um usuário com pedidos associados.");
