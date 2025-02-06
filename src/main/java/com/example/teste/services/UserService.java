@@ -20,6 +20,7 @@ import com.example.teste.repository.UserRepository;
 import com.example.teste.services.exceptions.DatabaseException;
 import com.example.teste.services.exceptions.IllegalArgumentException;
 import com.example.teste.services.exceptions.ResourceNotFoundException;
+import com.example.teste.services.exceptions.UnauthorizedException;
 import com.example.teste.utils.MD5Util;
 
 import jakarta.persistence.EntityNotFoundException;
@@ -42,15 +43,25 @@ public class UserService {
 	
 	public User findById(Long id) {
 		Optional<User> obj = repository.findById(id);
-		return obj.orElseThrow(() -> new ResourceNotFoundException(id));
+		return obj.orElseThrow(() -> new ResourceNotFoundException("Usuário não encontrado. Id: " + id));
 	}
 	
-	private boolean isEmailValid(@Email String email) {
+	private boolean validateEmail(@Email String email) {
 		boolean isValid = repository.findByEmail(email).isEmpty();
 	    if (!isValid) {
-	        throw new IllegalArgumentException("O email inserido já está cadastrado, tente outro.");
+	        throw new DatabaseException("O email inserido já está cadastrado, tente outro.");
 	    }
 	    return true;
+	}
+	
+	private UserDTO toDTO(User user) {
+		  UserDTO toDTO = new UserDTO();
+	    	toDTO.setId(user.getId());
+	    	toDTO.setName(user.getName());
+	    	toDTO.setEmail(user.getEmail());
+	    	toDTO.setPhone(user.getPhone());
+	  		    
+	    	return toDTO;
 	}
 
 	private void validatePassword(String password) {
@@ -78,27 +89,22 @@ public class UserService {
 	@Email
 	private void checkAndUpdateData(User entity, User user) {
 		entity.setName((Objects.nonNull(user.getName()) && !user.getName().isBlank()) ? user.getName() : entity.getName());
-		entity.setEmail((Objects.nonNull(user.getEmail()) &&  isEmailValid(user.getEmail()) && !user.getEmail().isBlank())? user.getEmail() : entity.getEmail());
+		entity.setEmail((Objects.nonNull(user.getEmail()) &&  validateEmail(user.getEmail()) && !user.getEmail().isBlank())? user.getEmail() : entity.getEmail());
 	    entity.setPhone((Objects.nonNull(user.getPhone()) && !user.getPhone().isBlank()) ? user.getPhone() : entity.getPhone());
-	    entity.setPassword((Objects.nonNull(user.getPassword()) && !user.getPassword().isBlank()) ? user.getPassword() : entity.getPassword());
-
-	    	    
+	    entity.setPassword((Objects.nonNull(user.getPassword()) && !user.getPassword().isBlank()) ? user.getPassword() : entity.getPassword());	    
 	}
 
 	public UserDTO insert(@Valid User obj) {
-		validateUser(obj);
-		isEmailValid(obj.email);
-		validatePassword(obj.getPassword());
-		obj.setPassword(MD5Util.encrypt(obj.getPassword()));
-		User user = repository.save(obj);
 		
-		UserDTO responseDTO = new UserDTO();
-	    responseDTO.setId(user.getId());
-	    responseDTO.setName(user.getName());
-	    responseDTO.setEmail(user.getEmail());
-	    responseDTO.setPhone(user.getPhone());
-	    
-	    return responseDTO;
+		validateUser(obj);
+		validateEmail(obj.email);
+		validatePassword(obj.getPassword());
+		
+		obj.setPassword(MD5Util.encrypt(obj.getPassword()));
+		
+		User savedUser = repository.save(obj);
+		
+		return new UserDTO(savedUser);
 	}
 	
 	
@@ -106,27 +112,21 @@ public class UserService {
 		Optional<User> emailLogin = repository.findByEmail(loginDTO.getEmail());
 		
 	    if (emailLogin.isEmpty()) {
-	        throw new IllegalArgumentException("E-mail não cadastrado.");
+	        throw new ResourceNotFoundException("E-mail não cadastrado.");
 	    }
 
 	    User user = emailLogin.get(); 
 	    String hashedPassword = MD5Util.encrypt(loginDTO.getPassword());
 
 	    if (!hashedPassword.equals(user.getPassword())) {
-	        throw new IllegalArgumentException("Senha incorreta.");
+	        throw new UnauthorizedException("Senha incorreta.");
 	    }
 
-	    UserDTO responseDTO = new UserDTO();
-	    responseDTO.setId(user.getId());
-	    responseDTO.setName(user.getName());
-	    responseDTO.setEmail(user.getEmail());
-	    responseDTO.setPhone(user.getPhone());
-	    
-	    return responseDTO;
+	    return new UserDTO(user);
 	}
 	
 	public void delete(Long id) {
-		repository.findById(id).orElseThrow(() -> new IllegalArgumentException("Usuário com ID " + id + " não encontrado."));
+		repository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Usuário com ID " + id + " não encontrado."));
 
 	    try {
 	        List<Order> orders = orderRepository.findByClientId(id);
@@ -135,8 +135,9 @@ public class UserService {
 	        }
 	        
 	        repository.deleteById(id);
+	        
 	    } catch (EmptyResultDataAccessException e) {
-	        throw new ResourceNotFoundException(id);
+	        throw new ResourceNotFoundException("Usuário não encontrado. Id: " + id);
 	    } catch (DataIntegrityViolationException e) {
 	        throw new DatabaseException(e.getMessage());
 	    }
@@ -155,16 +156,10 @@ public class UserService {
 			
 			User user = repository.save(entity);
 			
-			UserDTO responseDTO = new UserDTO();
-		    responseDTO.setId(user.getId());
-		    responseDTO.setName(user.getName());
-		    responseDTO.setEmail(user.getEmail());
-		    responseDTO.setPhone(user.getPhone());
-		    
-		    return responseDTO;
+			return new UserDTO(user);
 		    
 		} catch (EntityNotFoundException e) {
-			throw new ResourceNotFoundException(id);
+			throw new ResourceNotFoundException("Usuário não encontrado. Id: " + id);
 		} 
     }
 	
@@ -182,8 +177,9 @@ public class UserService {
             });
 
             return repository.save(entity);
+            
         } catch (EntityNotFoundException e) {
-            throw new ResourceNotFoundException(id); 
+            throw new ResourceNotFoundException("Usuário não encontrado. Id: " + id); 
         }
     }
 

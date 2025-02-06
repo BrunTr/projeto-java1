@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import com.example.teste.services.exceptions.DatabaseException;
 import com.example.teste.services.exceptions.IllegalArgumentException;
 import com.example.teste.services.exceptions.ResourceNotFoundException;
+import com.example.teste.services.exceptions.UnauthorizedException;
 
 import jakarta.servlet.http.HttpServletRequest;
 
@@ -38,12 +39,22 @@ public class ResourceExceptionHandler {
 		
 		@ExceptionHandler(DatabaseException.class)
 		public ResponseEntity<StandardError> database(DatabaseException e, HttpServletRequest request) {
-			String error = "Database error";
-			HttpStatus status = HttpStatus.BAD_REQUEST;
+			String error = "Conflict";
+			HttpStatus status = HttpStatus.CONFLICT;
 			StandardError err = new StandardError(Instant.now(), status.value(), error, e.getMessage(), request.getRequestURI());
 			return ResponseEntity.status(status).body(err);
 		}
 	   
+		@ExceptionHandler(UnauthorizedException.class)
+		public ResponseEntity<StandardError> unauthorized(UnauthorizedException e, HttpServletRequest request) {
+			String error = "Unauthorized";
+			HttpStatus status = HttpStatus.UNAUTHORIZED;
+			StandardError err = new StandardError(Instant.now(), status.value(), error, e.getMessage(), request.getRequestURI());
+			return ResponseEntity.status(status).body(err);
+		}
+		
+		
+		
 		@ExceptionHandler(MethodArgumentNotValidException.class)
 	    public ResponseEntity<Map<String, String>> handleValidationExceptions(MethodArgumentNotValidException ex) {
 	        

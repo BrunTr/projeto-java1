@@ -1,13 +1,10 @@
 package com.example.teste.services.exceptions;
 
-public class ResourceNotFoundException extends RuntimeException {
+public class UnauthorizedException extends RuntimeException {
 	
 	private static final long serialVersionUID = 1L;
 	
-	public ResourceNotFoundException(String message) {
+	public UnauthorizedException(String message) {
 		super(message);
 	}
-	
-
-	
 }
