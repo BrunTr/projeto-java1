@@ -8,7 +8,6 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
 
-import com.example.teste.dto.UserDTO;
 import com.example.teste.entities.Category;
 import com.example.teste.entities.Order;
 import com.example.teste.entities.OrderItem;

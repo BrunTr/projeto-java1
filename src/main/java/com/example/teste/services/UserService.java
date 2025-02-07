@@ -54,34 +54,23 @@ public class UserService {
 	    return true;
 	}
 	
-	private UserDTO toDTO(User user) {
-		  UserDTO toDTO = new UserDTO();
-	    	toDTO.setId(user.getId());
-	    	toDTO.setName(user.getName());
-	    	toDTO.setEmail(user.getEmail());
-	    	toDTO.setPhone(user.getPhone());
-	  		    
-	    	return toDTO;
-	}
-
 	private void validatePassword(String password) {
-		Optional<User> validatePassword = repository.findByPassword(password);
-		  if (validatePassword == null || password.length()< 8) {
+		  if (password.length()< 8) {
 		        throw new IllegalArgumentException("A senha deve ter 8 ou mais caracteres.");
 		  }
 	}
 	
 	private void validateUser(User user) {
-		if (user.getName() == null || user.getName().trim().isEmpty()) {
+		if (Objects.isNull(user.getName()) || user.getName().trim().isEmpty()) {
 	        throw new IllegalArgumentException("O nome não pode estar em branco.");
 	    }
-	    if (user.getEmail() == null || user.getEmail().trim().isEmpty()) {
+	    if (Objects.isNull(user.getEmail()) || user.getEmail().trim().isEmpty()) {
 	        throw new IllegalArgumentException("O e-mail não pode estar em branco.");
 	    }
-	    if (user.getPhone() == null || user.getPhone().trim().isEmpty()) {
+	    if (Objects.isNull (user.getPhone()) || user.getPhone().trim().isEmpty()) {
 	        throw new IllegalArgumentException("O telefone não pode estar em branco.");
 	    }
-	    if (user.getPassword() == null || user.getPassword().length() < 8) {
+	    if (Objects.isNull(user.getPassword()) || user.getPassword().length() < 8) {
 	        throw new IllegalArgumentException("A senha deve ter 8 ou mais caracteres.");
 	    }
 	}
@@ -93,7 +82,7 @@ public class UserService {
 	    entity.setPhone((Objects.nonNull(user.getPhone()) && !user.getPhone().isBlank()) ? user.getPhone() : entity.getPhone());
 	    entity.setPassword((Objects.nonNull(user.getPassword()) && !user.getPassword().isBlank()) ? user.getPassword() : entity.getPassword());	    
 	}
-
+	
 	public UserDTO insert(@Valid User obj) {
 		
 		validateUser(obj);
