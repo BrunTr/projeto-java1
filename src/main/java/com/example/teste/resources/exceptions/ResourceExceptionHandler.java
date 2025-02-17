@@ -54,7 +54,6 @@ public class ResourceExceptionHandler {
 		}
 		
 		
-		
 		@ExceptionHandler(MethodArgumentNotValidException.class)
 	    public ResponseEntity<Map<String, String>> handleValidationExceptions(MethodArgumentNotValidException ex) {
 	        

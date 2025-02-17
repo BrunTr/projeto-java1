@@ -31,10 +31,10 @@ import jakarta.validation.constraints.Email;
 public class UserService {
 
 	@Autowired
-	private UserRepository repository; 
+	public UserRepository repository; 
 	
 	@Autowired
-	private OrderRepository orderRepository; 
+	public OrderRepository orderRepository; 
 	
 	public List<UserDTO> findAll() {
 		List<User> user = repository.findAll();
@@ -46,7 +46,7 @@ public class UserService {
 		return obj.orElseThrow(() -> new ResourceNotFoundException("Usuário não encontrado. Id: " + id));
 	}
 	
-	private boolean validateEmail(@Email String email) {
+	public boolean validateEmail(@Email String email) {
 		boolean isValid = repository.findByEmail(email).isEmpty();
 	    if (!isValid) {
 	        throw new DatabaseException("O email inserido já está cadastrado, tente outro.");
@@ -54,13 +54,13 @@ public class UserService {
 	    return true;
 	}
 	
-	private void validatePassword(String password) {
+	public void validatePassword(String password) {
 		  if (password.length()< 8) {
 		        throw new IllegalArgumentException("A senha deve ter 8 ou mais caracteres.");
 		  }
 	}
 	
-	private void validateUser(User user) {
+	public void validateUser(User user) {
 		if (Objects.isNull(user.getName()) || user.getName().trim().isEmpty()) {
 	        throw new IllegalArgumentException("O nome não pode estar em branco.");
 	    }
@@ -76,7 +76,7 @@ public class UserService {
 	}
 	
 	@Email
-	private void checkAndUpdateData(User entity, User user) {
+	public void checkAndUpdateData(User entity, User user) {
 		entity.setName((Objects.nonNull(user.getName()) && !user.getName().isBlank()) ? user.getName() : entity.getName());
 		entity.setEmail((Objects.nonNull(user.getEmail()) &&  validateEmail(user.getEmail()) && !user.getEmail().isBlank())? user.getEmail() : entity.getEmail());
 	    entity.setPhone((Objects.nonNull(user.getPhone()) && !user.getPhone().isBlank()) ? user.getPhone() : entity.getPhone());
@@ -101,14 +101,14 @@ public class UserService {
 		Optional<User> emailLogin = repository.findByEmail(loginDTO.getEmail());
 		
 	    if (emailLogin.isEmpty()) {
-	        throw new ResourceNotFoundException("E-mail não cadastrado.");
+	        throw new UnauthorizedException("Email ou senha estão incorretos.");
 	    }
 
 	    User user = emailLogin.get(); 
 	    String hashedPassword = MD5Util.encrypt(loginDTO.getPassword());
 
-	    if (!hashedPassword.equals(user.getPassword())) {
-	        throw new UnauthorizedException("Senha incorreta.");
+	     if (!hashedPassword.equals(user.getPassword())) {
+	        throw new UnauthorizedException("Email ou senha estão incorretos.");
 	    }
 
 	    return new UserDTO(user);
