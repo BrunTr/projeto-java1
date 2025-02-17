@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
@@ -29,24 +30,31 @@ import jakarta.validation.Valid;
 public class UserResource {
 
 	@Autowired
-	private UserService service;
+	private UserService userService;
 	
 		
 	@GetMapping
 	public ResponseEntity<List<UserDTO>> findAll() {
-		List<UserDTO> list = service.findAll();
+		List<UserDTO> list = userService.findAll();
 		return ResponseEntity.ok().body(list);
 	}
 	
 	@GetMapping(value = "/{id}")
 	public ResponseEntity<User> findById(@PathVariable Long id) {
-		User obj = service.findById(id);
+		User obj = userService.findById(id);
 		return ResponseEntity.ok().body(obj);
 	}
 	
+    @GetMapping("/search")
+    public List<UserDTO> findUser(@RequestParam String termo) {
+        return userService.findUser(termo);
+//		List<UserDTO> list = userService.findUser();
+//		return ResponseEntity.ok().body(termo);
+    }
+    
 	@PostMapping
 	public ResponseEntity<UserDTO> insert(@RequestBody @Valid User obj) {
-	    UserDTO userDTO = service.insert(obj); 
+	    UserDTO userDTO = userService.insert(obj); 
 	    URI uri = ServletUriComponentsBuilder.fromCurrentRequest()
 	            .path("/{id}")
 	            .buildAndExpand(userDTO.getId()) 
@@ -57,14 +65,14 @@ public class UserResource {
 	
 	@PostMapping(value = "/login")
 	public ResponseEntity<UserDTO> login(@RequestBody LoginDTO loginDTO){
-		UserDTO userDTO = service.login(loginDTO);
+		UserDTO userDTO = userService.login(loginDTO);
 		
 		return ResponseEntity.ok(userDTO);
 	}
 	
 	@PutMapping(value = "/{id}")
 	public ResponseEntity<UserDTO> update(@PathVariable Long id, @RequestBody @Valid User obj) {
-		UserDTO userDTO = service.update(id, obj);
+		UserDTO userDTO = userService.update(id, obj);
 		
 	    return ResponseEntity.ok().body(userDTO);
 	}
@@ -73,13 +81,13 @@ public class UserResource {
 	@PatchMapping("/{id}")
 	public ResponseEntity<User> updatePartial(@PathVariable Long id, @RequestBody Map<String, Object> updates) {
 
-	    User updatedUser = service.updatePartial(id, updates);
+	    User updatedUser = userService.updatePartial(id, updates);
 	    return ResponseEntity.ok().body(updatedUser);
 	}
 	
 	@DeleteMapping(value = "/{id}")
 	public ResponseEntity<Void> delete(@PathVariable Long id) {
-		service.delete(id);
+		userService.delete(id);
 		return ResponseEntity.noContent().build();
 	}
 }

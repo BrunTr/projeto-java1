@@ -31,23 +31,29 @@ import jakarta.validation.constraints.Email;
 public class UserService {
 
 	@Autowired
-	public UserRepository repository; 
+	private UserRepository userRepository; 
 	
 	@Autowired
 	public OrderRepository orderRepository; 
 	
 	public List<UserDTO> findAll() {
-		List<User> user = repository.findAll();
+		List<User> user = userRepository.findAll();
 		return user.stream().map(UserDTO::new).collect(Collectors.toList());
 	}
 	
 	public User findById(Long id) {
-		Optional<User> obj = repository.findById(id);
+		Optional<User> obj = userRepository.findById(id);
 		return obj.orElseThrow(() -> new ResourceNotFoundException("Usuário não encontrado. Id: " + id));
 	}
 	
+	public List<UserDTO> findUser(String termo) { 
+	    List<User> users = userRepository.searchUser(termo);
+	    return users.stream().map(UserDTO::new).toList();
+	}
+
+	
 	public boolean validateEmail(@Email String email) {
-		boolean isValid = repository.findByEmail(email).isEmpty();
+		boolean isValid = userRepository.findByEmail(email).isEmpty();
 	    if (!isValid) {
 	        throw new DatabaseException("O email inserido já está cadastrado, tente outro.");
 	    }
@@ -91,14 +97,14 @@ public class UserService {
 		
 		obj.setPassword(MD5Util.encrypt(obj.getPassword()));
 		
-		User savedUser = repository.save(obj);
+		User savedUser = userRepository.save(obj);
 		
 		return new UserDTO(savedUser);
 	}
 	
 	
 	public UserDTO login(@Valid LoginDTO loginDTO) {
-		Optional<User> emailLogin = repository.findByEmail(loginDTO.getEmail());
+		Optional<User> emailLogin = userRepository.findByEmail(loginDTO.getEmail());
 		
 	    if (emailLogin.isEmpty()) {
 	        throw new UnauthorizedException("Email ou senha estão incorretos.");
@@ -115,7 +121,7 @@ public class UserService {
 	}
 	
 	public void delete(Long id) {
-		repository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Usuário com ID " + id + " não encontrado."));
+		userRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Usuário com ID " + id + " não encontrado."));
 
 	    try {
 	        List<Order> orders = orderRepository.findByClientId(id);
@@ -123,7 +129,7 @@ public class UserService {
 	            throw new DatabaseException("Não é possível excluir um usuário com pedidos associados.");
 	        }
 	        
-	        repository.deleteById(id);
+	        userRepository.deleteById(id);
 	        
 	    } catch (EmptyResultDataAccessException e) {
 	        throw new ResourceNotFoundException("Usuário não encontrado. Id: " + id);
@@ -135,7 +141,7 @@ public class UserService {
 	
 	public UserDTO update(Long id, @Valid User obj) {
 		try {
-			User entity = repository.getReferenceById(id);
+			User entity = userRepository.getReferenceById(id);
 			
 			checkAndUpdateData(entity, obj);
 			
@@ -143,7 +149,7 @@ public class UserService {
 			entity.setPassword(MD5Util.encrypt(entity.getPassword()));
 			obj.setPassword(obj.getPassword());
 			
-			User user = repository.save(entity);
+			User user = userRepository.save(entity);
 			
 			return new UserDTO(user);
 		    
@@ -154,7 +160,7 @@ public class UserService {
 	
     public User updatePartial(Long id, Map<String, Object> updates) {
         try {
-            User entity = repository.getReferenceById(id);
+            User entity = userRepository.getReferenceById(id);
            			
             updates.forEach((key, value) -> {
                 switch (key) {
@@ -165,7 +171,7 @@ public class UserService {
                 }
             });
 
-            return repository.save(entity);
+            return userRepository.save(entity);
             
         } catch (EntityNotFoundException e) {
             throw new ResourceNotFoundException("Usuário não encontrado. Id: " + id); 
