@@ -48,8 +48,6 @@ public class UserResource {
     @GetMapping("/search")
     public List<UserDTO> findUser(@RequestParam String termo) {
         return userService.findUser(termo);
-//		List<UserDTO> list = userService.findUser();
-//		return ResponseEntity.ok().body(termo);
     }
     
 	@PostMapping

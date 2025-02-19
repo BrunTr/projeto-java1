@@ -6,8 +6,8 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.util.Collections;
@@ -23,11 +23,10 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.dao.DataIntegrityViolationException;
-import org.springframework.dao.EmptyResultDataAccessException;
 
 import com.example.teste.dto.LoginDTO;
 import com.example.teste.dto.UserDTO;
+import com.example.teste.entities.Order;
 import com.example.teste.entities.User;
 import com.example.teste.repository.OrderRepository;
 import com.example.teste.repository.UserRepository;
@@ -244,6 +243,29 @@ class UserServiceTest {
     }
     
     @Test
+    void testFindUser() {
+        User user1 = new User(1L, "Maria Brown", "maria@gmail.com", "988888888", "12345678");
+        User user2 = new User(2L, "Alex Green", "alex@gmail.com", "977777777", "87654321");
+
+        when(userRepository.searchUser("Ma")).thenReturn(List.of(user1));
+        when(userRepository.searchUser("A")).thenReturn(List.of(user1, user2));
+
+        List<UserDTO> result1 = userService.findUser("Ma");
+        List<UserDTO> result2 = userService.findUser("A");
+
+        assertEquals(1, result1.size());
+        assertEquals("Maria Brown", result1.get(0).getName());
+
+        assertEquals(2, result2.size());
+        assertEquals("Maria Brown", result2.get(0).getName());
+        assertEquals("Alex Green", result2.get(1).getName());
+
+        verify(userRepository, times(1)).searchUser("Ma");
+        verify(userRepository, times(1)).searchUser("A");
+    }
+
+    
+    @Test
     void insert_UserWithExistingEmail_ShouldThrowException() {
         when(userRepository.findByEmail(user.getEmail())).thenReturn(Optional.of(user));
         assertThrows(DatabaseException.class, () -> userService.insert(user));
@@ -272,62 +294,62 @@ class UserServiceTest {
         
     @Test
     void delete_UserExists_ShouldDeleteUser() {
-        when(userRepository.findById(1L)).thenReturn(Optional.of(user));
+        when(userRepository.existsById(1L)).thenReturn(true);
         when(orderRepository.findByClientId(1L)).thenReturn(Collections.emptyList());
+
         assertDoesNotThrow(() -> userService.delete(1L));
     }
     
     @Test
-    void delete_UserExists_ShouldThrowException() {
-        Long userId = 999L;
-        when(userRepository.findById(userId)).thenReturn(Optional.of(new User()));
-        doThrow(EmptyResultDataAccessException.class).when(userRepository).deleteById(userId);
-        assertThrows(ResourceNotFoundException.class, () -> userService.delete(userId));
+    void delete_UserHasOrders_ShouldThrowDatabaseException() {
+        when(userRepository.existsById(1L)).thenReturn(true);
+        when(orderRepository.findByClientId(1L)).thenReturn(List.of(new Order()));
+
+        assertThrows(DatabaseException.class, () -> userService.delete(1L));
     }
     
     @Test
-    void delete_NonExistentUser_ShouldThrowException() {
-        Long nonExistentUserId = 999L;
-        when(userRepository.findById(nonExistentUserId)).thenReturn(Optional.empty());
-        assertThrows(ResourceNotFoundException.class, () -> userService.delete(nonExistentUserId));
+    void delete_UserNotFound_ShouldThrowException() {
+        when(userRepository.existsById(1L)).thenReturn(false);
+
+        assertThrows(ResourceNotFoundException.class, () -> userService.delete(1L));
     }
+
     
     @Test
     void delete_UserHasOrders_ShouldThrowException() {
-    	 Long userId = 1L;
-         when(userRepository.findById(userId)).thenReturn(Optional.of(new User()));
-         when(orderRepository.findByClientId(userId)).thenReturn(Collections.singletonList(mock(com.example.teste.entities.Order.class)));
-         assertThrows(DatabaseException.class, () -> userService.delete(userId));
-     }
-    
-    @Test
-    void delete_UserNoOrders_ShouldThrowException() {
-        Long userId = 2L;
+    	   Long userId = 1L;
 
-        when(userRepository.findById(userId)).thenReturn(Optional.of(new User()));
-        when(orderRepository.findByClientId(userId)).thenReturn(Collections.emptyList());
+    	   when(userRepository.existsById(userId)).thenReturn(true); // Simulando que o usuário existe
+    	   when(orderRepository.findByClientId(userId)).thenReturn(List.of(new Order())); // Simulando que o usuário tem pedidos
 
-        doThrow(DataIntegrityViolationException.class).when(userRepository).deleteById(userId);
-
-        assertThrows(DatabaseException.class, () -> userService.delete(userId));    
-    }
-    
+    	   assertThrows(DatabaseException.class, () -> userService.delete(userId));
+    	}
+       
     @Test
     void update_UserExists_ShouldUpdateUser() {
+        Long userId = 1L;
+
         User updatedUser = new User();
         updatedUser.setName("Novo Nome");
-        
-        when(userRepository.getReferenceById(1L)).thenReturn(user);
-        when(userRepository.save(any(User.class))).thenReturn(user);
-        
-        UserDTO updatedDTO = userService.update(1L, updatedUser);
+        updatedUser.setPassword("novaSenha");
+
+        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+        when(userRepository.save(any(User.class))).thenAnswer(invocation -> invocation.getArgument(0)); // Simula salvar o próprio objeto
+
+        UserDTO updatedDTO = userService.update(userId, updatedUser);
+
         assertEquals("Novo Nome", updatedDTO.getName());
+        assertEquals(MD5Util.encrypt("novaSenha"), user.getPassword()); // Senha criptografada corretamente
     }
-    
+
     @Test
     void update_UserNotFound_ShouldThrowException() {
-        when(userRepository.getReferenceById(1L)).thenThrow(new EntityNotFoundException());
-        assertThrows(ResourceNotFoundException.class, () -> userService.update(1L, user));
+        Long userId = 1L;
+
+        when(userRepository.findById(userId)).thenReturn(Optional.empty());
+
+        assertThrows(ResourceNotFoundException.class, () -> userService.update(userId, user));
     }
     
     @Test

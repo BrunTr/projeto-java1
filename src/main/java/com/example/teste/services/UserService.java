@@ -3,17 +3,13 @@ package com.example.teste.services;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.dao.DataIntegrityViolationException;
-import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.stereotype.Service;
 
 import com.example.teste.dto.LoginDTO;
 import com.example.teste.dto.UserDTO;
-import com.example.teste.entities.Order;
 import com.example.teste.entities.User;
 import com.example.teste.repository.OrderRepository;
 import com.example.teste.repository.UserRepository;
@@ -42,8 +38,7 @@ public class UserService {
 	}
 	
 	public User findById(Long id) {
-		Optional<User> obj = userRepository.findById(id);
-		return obj.orElseThrow(() -> new ResourceNotFoundException("Usuário não encontrado. Id: " + id));
+		return userRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Usuário não encontrado. Id: " + id));
 	}
 	
 	public List<UserDTO> findUser(String termo) { 
@@ -104,13 +99,8 @@ public class UserService {
 	
 	
 	public UserDTO login(@Valid LoginDTO loginDTO) {
-		Optional<User> emailLogin = userRepository.findByEmail(loginDTO.getEmail());
-		
-	    if (emailLogin.isEmpty()) {
-	        throw new UnauthorizedException("Email ou senha estão incorretos.");
-	    }
-
-	    User user = emailLogin.get(); 
+	    User user = userRepository.findByEmail(loginDTO.getEmail()).orElseThrow(() -> new UnauthorizedException("Email ou senha estão incorretos."));
+	    
 	    String hashedPassword = MD5Util.encrypt(loginDTO.getPassword());
 
 	     if (!hashedPassword.equals(user.getPassword())) {
@@ -121,41 +111,28 @@ public class UserService {
 	}
 	
 	public void delete(Long id) {
-		userRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Usuário com ID " + id + " não encontrado."));
-
-	    try {
-	        List<Order> orders = orderRepository.findByClientId(id);
-	        if (!orders.isEmpty()) {
-	            throw new DatabaseException("Não é possível excluir um usuário com pedidos associados.");
-	        }
-	        
-	        userRepository.deleteById(id);
-	        
-	    } catch (EmptyResultDataAccessException e) {
-	        throw new ResourceNotFoundException("Usuário não encontrado. Id: " + id);
-	    } catch (DataIntegrityViolationException e) {
-	        throw new DatabaseException(e.getMessage());
-	    }
+		if (!userRepository.existsById(id)) {
+		    throw new ResourceNotFoundException("Usuário com ID " + id + " não encontrado.");
+		}
+		if (!orderRepository.findByClientId(id).isEmpty()) {
+		        throw new DatabaseException("Não é possível excluir um usuário com pedidos associados.");
+		    }
+	    
+		userRepository.deleteById(id);
 	}
 
 	
 	public UserDTO update(Long id, @Valid User obj) {
-		try {
-			User entity = userRepository.getReferenceById(id);
+		User entity = userRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Usuário com ID " + id + " não encontrado."));
+
+		checkAndUpdateData(entity, obj);
 			
-			checkAndUpdateData(entity, obj);
+		entity.setPassword(MD5Util.encrypt(entity.getPassword()));
 			
-			validatePassword(entity.getPassword());
-			entity.setPassword(MD5Util.encrypt(entity.getPassword()));
-			obj.setPassword(obj.getPassword());
+		User user = userRepository.save(entity);
 			
-			User user = userRepository.save(entity);
-			
-			return new UserDTO(user);
+		return new UserDTO(user);
 		    
-		} catch (EntityNotFoundException e) {
-			throw new ResourceNotFoundException("Usuário não encontrado. Id: " + id);
-		} 
     }
 	
     public User updatePartial(Long id, Map<String, Object> updates) {
