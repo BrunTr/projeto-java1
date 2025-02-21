@@ -6,6 +6,9 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import com.example.teste.dto.LoginDTO;
@@ -17,6 +20,7 @@ import com.example.teste.services.exceptions.DatabaseException;
 import com.example.teste.services.exceptions.IllegalArgumentException;
 import com.example.teste.services.exceptions.ResourceNotFoundException;
 import com.example.teste.services.exceptions.UnauthorizedException;
+import com.example.teste.specification.UserSpecification;
 import com.example.teste.utils.MD5Util;
 
 import jakarta.persistence.EntityNotFoundException;
@@ -41,12 +45,12 @@ public class UserService {
 		return userRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Usuário não encontrado. Id: " + id));
 	}
 	
-	public List<UserDTO> findUser(String termo) { 
-	    List<User> users = userRepository.searchUser(termo);
-	    return users.stream().map(UserDTO::new).toList();
-	}
-
-	
+	public Page<UserDTO> specUser(String name, String email, String phone, Pageable pageable) {
+	    Specification<User> spec = UserSpecification.filterBy(name, email, phone);
+	    Page<User> users = userRepository.findAll(spec, pageable);
+	    return users.map(UserDTO::new);
+    }
+   
 	public boolean validateEmail(@Email String email) {
 		boolean isValid = userRepository.findByEmail(email).isEmpty();
 	    if (!isValid) {

@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -23,6 +24,12 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 
 import com.example.teste.dto.LoginDTO;
 import com.example.teste.dto.UserDTO;
@@ -94,7 +101,6 @@ class UserServiceTest {
         when(userRepository.findById(1L)).thenReturn(Optional.empty());
         assertThrows(ResourceNotFoundException.class, () -> userService.findById(1L));
     }
-    
     @Test
     void validateEmail_EmailAlreadyExists_ShouldThrowException() {
         when(userRepository.findByEmail(user.getEmail())).thenReturn(Optional.of(user));
@@ -247,21 +253,28 @@ class UserServiceTest {
         User user1 = new User(1L, "Maria Brown", "maria@gmail.com", "988888888", "12345678");
         User user2 = new User(2L, "Alex Green", "alex@gmail.com", "977777777", "87654321");
 
-        when(userRepository.searchUser("Ma")).thenReturn(List.of(user1));
-        when(userRepository.searchUser("A")).thenReturn(List.of(user1, user2));
+        Pageable pageable = PageRequest.of(0, 5, Sort.by("name").ascending());
 
-        List<UserDTO> result1 = userService.findUser("Ma");
-        List<UserDTO> result2 = userService.findUser("A");
+        Page<User> page1 = new PageImpl<>(List.of(user1), pageable, 1);
+        Page<User> page2 = new PageImpl<>(List.of(user1, user2), pageable, 2);
 
-        assertEquals(1, result1.size());
-        assertEquals("Maria Brown", result1.get(0).getName());
+        Specification<User> spec = (root, query, criteriaBuilder) -> criteriaBuilder.conjunction();
 
-        assertEquals(2, result2.size());
-        assertEquals("Maria Brown", result2.get(0).getName());
-        assertEquals("Alex Green", result2.get(1).getName());
+        when(userRepository.findAll(any(Specification.class), eq(pageable)))
+                .thenReturn(page1)
+                .thenReturn(page2);
 
-        verify(userRepository, times(1)).searchUser("Ma");
-        verify(userRepository, times(1)).searchUser("A");
+        Page<UserDTO> result1 = userService.specUser("Maria", null, null, pageable);
+        Page<UserDTO> result2 = userService.specUser("A", null, null, pageable);
+
+        assertEquals(1, result1.getTotalElements());
+        assertEquals("Maria Brown", result1.getContent().get(0).getName());
+
+        assertEquals(2, result2.getTotalElements());
+        assertEquals("Maria Brown", result2.getContent().get(0).getName());
+        assertEquals("Alex Green", result2.getContent().get(1).getName());
+
+        verify(userRepository, times(2)).findAll(any(Specification.class), eq(pageable));
     }
 
     

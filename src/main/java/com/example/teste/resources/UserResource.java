@@ -5,6 +5,8 @@ import java.util.List;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -46,9 +48,14 @@ public class UserResource {
 	}
 	
     @GetMapping("/search")
-    public List<UserDTO> findUser(@RequestParam String termo) {
-        return userService.findUser(termo);
-    }
+    public Page<UserDTO> specUser(
+    	    @RequestParam(required = false) String name,
+    	    @RequestParam(required = false) String email,
+    	    @RequestParam(required = false) String phone,
+    	    Pageable pageable
+    	) {
+    	    return userService.specUser(name, email, phone, pageable);
+    	}
     
 	@PostMapping
 	public ResponseEntity<UserDTO> insert(@RequestBody @Valid User obj) {
